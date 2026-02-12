@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+
+<title>CATNAP STUDIO Portfolio</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+<style>
+
+/* ===== BASE ===== */
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:sans-serif;
+}
+
+body{
+background:black;
+color:white;
+text-align:center;
+}
+
+/* ===== BG ===== */
+.bg{
+position:fixed;
+inset:0;
+background:
+radial-gradient(circle,#ff66ff33,transparent),
+linear-gradient(120deg,#020617,#000);
+animation:hue 10s infinite alternate;
+z-index:-1;
+}
+
+@keyframes hue{
+0%{filter:hue-rotate(0)}
+100%{filter:hue-rotate(40deg)}
+}
+
+/* ===== CARD ===== */
+.card{
+max-width:700px;
+margin:30px auto;
+background:#0f172a;
+padding:25px;
+border-radius:25px;
+box-shadow:0 0 30px #ff66ff55;
+}
+
+/* ===== BTN ===== */
+.btn{
+margin-top:15px;
+padding:10px 25px;
+border-radius:25px;
+border:none;
+background:linear-gradient(45deg,#ff66ff,#00ffff);
+font-weight:bold;
+cursor:pointer;
+}
+
+/* ===== INPUT ===== */
+input{
+padding:10px;
+border-radius:20px;
+border:none;
+width:80%;
+margin:10px;
+}
+
+/* ===== GALLERY ===== */
+#gallery{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+gap:15px;
+margin-top:20px;
+}
+
+#gallery img{
+width:100%;
+border-radius:15px;
+transition:.3s;
+}
+
+#gallery img:hover{
+transform:scale(1.05);
+box-shadow:0 0 20px #ff66ff;
+}
+
+/* ===== HIDDEN ===== */
+#uploadBox{
+display:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="bg"></div>
+
+<h1 style="color:#ff66ff;margin-top:30px;">
+💗 CATNAP STUDIO 💗
+</h1>
+
+<p>Sweet Portfolio System</p>
+
+<!-- LOGIN -->
+<div class="card" id="loginBox">
+
+<h3>🔐 Admin Login</h3>
+
+<input id="pin" type="password" placeholder="163750">
+
+<br>
+
+<button class="btn" onclick="login()">
+Login
+</button>
+
+</div>
+
+<!-- UPLOAD -->
+<div class="card" id="uploadBox">
+
+<h3>📤 Upload Image</h3>
+
+<input type="file" id="file">
+
+<br>
+
+<button class="btn" onclick="upload()">
+Upload
+</button>
+
+<p id="status"></p>
+
+</div>
+
+<!-- GALLERY -->
+<div class="card">
+
+<h3>🌸 My Gallery</h3>
+
+<div id="gallery"></div>
+
+</div>
+
+<footer style="opacity:.6;margin:40px 0;">
+© 2026 CATNAP STUDIO
+</footer>
+
+<script>
+
+/* ================= FIREBASE ================= */
+/* 👉 เอาของแพรมาใส่ตรงนี้ */
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyCP5VcUyWDnSqvcgMKJuIsolIJDVX32JqE",
+authDomain: "catnapstudio-b3052.firebaseapp.com",
+projectId: "catnapstudio-b3052",
+storageBucket: "catnapstudio-b3052.firebasestorage.app"
+
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+/* ================= ADMIN PIN ================= */
+const ADMIN_PIN="1234"; // เปลี่ยนรหัสได้ตรงนี้
+
+function login(){
+
+const p=document.getElementById("pin").value;
+
+if(p===ADMIN_PIN){
+
+loginBox.style.display="none";
+uploadBox.style.display="block";
+
+}else{
+
+alert("❌ รหัสผิดค่ะ");
+
+}
+
+}
+
+/* ================= UPLOAD ================= */
+function upload(){
+
+const file=document.getElementById("file").files[0];
+
+if(!file){
+alert("เลือกรูปก่อนนะคะ 💗");
+return;
+}
+
+status.innerText="Uploading...";
+
+const ref=storage.ref("gallery/"+Date.now()+file.name);
+
+ref.put(file).then(()=>{
+
+ref.getDownloadURL().then(url=>{
+
+db.collection("gallery").add({
+url:url,
+time:Date.now()
+});
+
+status.innerText="✅ Upload สำเร็จ";
+
+});
+
+});
+
+}
+
+/* ================= LOAD GALLERY ================= */
+function load(){
+
+db.collection("gallery")
+.orderBy("time","desc")
+.onSnapshot(snap=>{
+
+gallery.innerHTML="";
+
+snap.forEach(doc=>{
+
+const img=document.createElement("img");
+img.src=doc.data().url;
+
+gallery.appendChild(img);
+
+});
+
+});
+
+}
+
+load();
+
+</script>
+
+</body>
+</html>
